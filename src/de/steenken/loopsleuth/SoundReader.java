@@ -46,6 +46,9 @@ public class SoundReader {
 	} 
 
 	
+	/**
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		
 		try {
@@ -53,37 +56,30 @@ public class SoundReader {
 			File inputFile = new File("/home/dominik/GitWorkspace/LoopSleuth/res/fightofthecentury.mp3");
 			AudioInputStream inStream = AudioSystem.getAudioInputStream(inputFile);
 		    AudioInputStream decodedInStream = null;
-		    AudioFormat baseFormat = inStream.getFormat();
+		    AudioFormat audioFormat = inStream.getFormat();
 		    AudioFormat decodedFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 
-		                                                                                  baseFormat.getSampleRate(),
+		                                                                                  audioFormat.getSampleRate(),
 		                                                                                  16,
-		                                                                                  baseFormat.getChannels(),
-		                                                                                  baseFormat.getChannels() * 2,
-		                                                                                  baseFormat.getSampleRate(),
+		                                                                                  audioFormat.getChannels(),
+		                                                                                  audioFormat.getChannels() * 2,
+		                                                                                  audioFormat.getSampleRate(),
 		                                                                                  false);
 		    decodedInStream = AudioSystem.getAudioInputStream(decodedFormat, inStream);
-		    // Play now. 
+			
+			System.out.println("Base File Format: " + audioFormat);
+
+			System.out.println("Channels: "+audioFormat.getChannels());
+            System.out.println("Encoding: "+audioFormat.getEncoding());
+            System.out.println("Frame Rate: "+audioFormat.getFrameRate());
+            System.out.println("Frame Size: "+audioFormat.getFrameSize());
+            System.out.println("Sample Rate: "+audioFormat.getSampleRate());
+            System.out.println("Sample size (bits): "+audioFormat.getSampleSizeInBits());
+            System.out.println("Big endian: "+audioFormat.isBigEndian());
+            System.out.println("Audio Format String: "+audioFormat.toString());
+            
+            // Play now. 
 		    rawplay(decodedFormat, decodedInStream);
 		    inStream.close();
-			
-			
-			System.out.println("Base File Format: " + inStream.getFormat());
-			
-
-//			System.out.println("File Format Type: "+fileFormat.getType());
-//            System.out.println("File Format String: "+fileFormat.toString());
-//            System.out.println("File lenght: "+fileFormat.getByteLength());
-//            System.out.println("Frame length: "+fileFormat.getFrameLength());
-            
-
-//			System.out.println("Channels: "+audioFormat.getChannels());
-//            System.out.println("Encoding: "+audioFormat.getEncoding());
-//            System.out.println("Frame Rate: "+audioFormat.getFrameRate());
-//            System.out.println("Frame Size: "+audioFormat.getFrameSize());
-//            System.out.println("Sample Rate: "+audioFormat.getSampleRate());
-//            System.out.println("Sample size (bits): "+audioFormat.getSampleSizeInBits());
-//            System.out.println("Big endian: "+audioFormat.isBigEndian());
-//            System.out.println("Audio Format String: "+audioFormat.toString());
 			
 		} catch (Exception e) {
 			System.err.println("Exception \"" + e.toString() + "\" occurred.");
