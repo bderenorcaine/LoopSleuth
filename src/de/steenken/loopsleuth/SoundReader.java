@@ -53,7 +53,7 @@ public class SoundReader {
 		
 		try {
 
-			File inputFile = new File("/home/dominik/GitWorkspace/LoopSleuth/res/fightofthecentury.mp3");
+			File inputFile = new File("res/fightofthecentury.mp3");
 			AudioInputStream inStream = AudioSystem.getAudioInputStream(inputFile);
 		    AudioInputStream decodedInStream = null;
 		    AudioFormat audioFormat = inStream.getFormat();
