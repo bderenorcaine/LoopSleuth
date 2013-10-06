@@ -2,6 +2,14 @@ package de.steenken.loopsleuth;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Time;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
@@ -45,8 +53,7 @@ public class SoundReader {
 			while (nBytesRead != -1) {
 				nBytesRead = din.read(data, 0, data.length);
 				if (nBytesRead != -1) {
-					for (int i = 0; i < nBytesRead; i += 4)
-					{
+					for (int i = 0; i < nBytesRead; i += 4) {
 						data[i] *= 32;
 						data[i + 2] *= 32;
 					}
@@ -60,6 +67,47 @@ public class SoundReader {
 			line.stop();
 			line.close();
 			din.close();
+		}
+	}
+
+	private static int sumFrame(byte[] frame)
+	{
+		return 255*(255*(255*frame[0] + frame[1]) + frame[2]) + frame[3];
+	}
+	
+	private static void lookForPairs(AudioInputStream stream) {
+//		ArrayList<byte[]> streamData = new ArrayList<byte[]>();
+		HashMap<Integer, List<Integer>> sumToIndex = new HashMap<Integer, List<Integer>>();
+		byte[] frame = new byte[4];
+		try {
+			int index = 0;
+			long before = System.currentTimeMillis();
+			while (stream.read(frame) > 0) {
+//				streamData.add(frame.clone());
+				int sum = sumFrame(frame);
+				if (sumToIndex.containsKey(sum))
+					sumToIndex.get(sum).add(index++);
+				else
+				{
+					sumToIndex.put(sum, new ArrayList<Integer>());
+					sumToIndex.get(sum).add(index++);
+				}
+				if (sumToIndex.size() % 1000 == 0)
+				{
+					System.out.println("HashMap now contains " + sumToIndex.size() + " entries.");
+				}
+			}
+			long after = System.currentTimeMillis();
+			System.out.println("Analyzing this sound file took " + (after - before) / 1000 + " seconds.");
+			for (Map.Entry<Integer, List<Integer>> entry : sumToIndex.entrySet())
+			{
+				System.out.print("Potential Loop Set: " + entry.getKey() + " -> [ ");
+				for (int i : entry.getValue())
+					System.out.print(i + " ");
+				System.out.println("]");
+			}
+		} catch (Exception e) {
+			System.err.println("Exception occurred: " + e.toString());
 		}
 	}
 
@@ -87,17 +135,17 @@ public class SoundReader {
 				+ " frames, each " + format.getFrameSize()
 				+ " bytes long. Per second, " + format.getFrameRate()
 				+ " frames are used.");
-//		byte[] frame = new byte[4];
-//		int index = 0;
-//		try {
-//			while (stream.read(frame) > 0) {
-//
-//				System.out.println("Frame " + index++ + ": "
-//						+ frameToString(frame));
-//			}
-//		} catch (IOException e) {
-//			System.err.println("IO Exception caught: " + e.toString());
-//		}
+		// byte[] frame = new byte[4];
+		// int index = 0;
+		// try {
+		// while (stream.read(frame) > 0) {
+		//
+		// System.out.println("Frame " + index++ + ": "
+		// + frameToString(frame));
+		// }
+		// } catch (IOException e) {
+		// System.err.println("IO Exception caught: " + e.toString());
+		// }
 	}
 
 	/**
@@ -136,6 +184,7 @@ public class SoundReader {
 					.println("Audio Format String: " + audioFormat.toString());
 
 			// Play now.
+			lookForPairs(decodedInStream);
 			modifiedPlay(decodedFormat, decodedInStream);
 			inStream.close();
 
