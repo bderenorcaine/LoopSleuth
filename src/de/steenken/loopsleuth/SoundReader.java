@@ -156,7 +156,7 @@ public class SoundReader {
 		try {
 
 			File inputFile = new File(
-					"/home/dominik/GitWorkspace/LoopSleuth/res/fightofthecentury.mp3");
+					"res/fightofthecentury.mp3");
 			AudioInputStream inStream = AudioSystem
 					.getAudioInputStream(inputFile);
 			AudioInputStream decodedInStream = null;
