@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,7 +21,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
 public class SoundReader {
-
+	
 	private static void rawPlay(AudioFormat targetFormat, AudioInputStream din)
 			throws IOException, LineUnavailableException {
 		byte[] data = new byte[4096];
@@ -70,40 +71,35 @@ public class SoundReader {
 		}
 	}
 
-	private static int sumFrame(byte[] frame)
-	{
-		return 255*(255*(255*frame[0] + frame[1]) + frame[2]) + frame[3];
-	}
-	
 	private static void lookForPairs(AudioInputStream stream) {
-//		ArrayList<byte[]> streamData = new ArrayList<byte[]>();
-		HashMap<Integer, List<Integer>> sumToIndex = new HashMap<Integer, List<Integer>>();
-		byte[] frame = new byte[4];
+
+		HashMap<Frame, List<Frame>> frameSet = new HashMap<Frame, List<Frame>>();
+		byte[] data = new byte[4];
 		try {
 			int index = 0;
 			long before = System.currentTimeMillis();
-			while (stream.read(frame) > 0) {
-//				streamData.add(frame.clone());
-				int sum = sumFrame(frame);
-				if (sumToIndex.containsKey(sum))
-					sumToIndex.get(sum).add(index++);
+			while (stream.read(data) > 0) {
+				Frame frame = new Frame(data, index, true);
+				
+				if (frameSet.containsKey(frame))
+					frameSet.get(frame).add(frame);
 				else
 				{
-					sumToIndex.put(sum, new ArrayList<Integer>());
-					sumToIndex.get(sum).add(index++);
+					frameSet.put(frame, new ArrayList<Frame>());
+					frameSet.get(frame).add(frame);
 				}
-				if (sumToIndex.size() % 1000 == 0)
+				if (frameSet.size() % 1000 == 0)
 				{
-					System.out.println("HashMap now contains " + sumToIndex.size() + " entries.");
+					System.out.println("HashMap now contains " + frameSet.size() + " entries.");
 				}
 			}
 			long after = System.currentTimeMillis();
 			System.out.println("Analyzing this sound file took " + (after - before) / 1000 + " seconds.");
-			for (Map.Entry<Integer, List<Integer>> entry : sumToIndex.entrySet())
+			for (Map.Entry<Frame, List<Frame>> entry : frameSet.entrySet())
 			{
 				System.out.print("Potential Loop Set: " + entry.getKey() + " -> [ ");
-				for (int i : entry.getValue())
-					System.out.print(i + " ");
+				for (Frame frame : entry.getValue())
+					System.out.print(frame.toString() + " ");
 				System.out.println("]");
 			}
 		} catch (Exception e) {
@@ -119,14 +115,6 @@ public class SoundReader {
 		res = (SourceDataLine) AudioSystem.getLine(info);
 		res.open(audioFormat);
 		return res;
-	}
-
-	private static String frameToString(byte[] frame) {
-		String result = "[ ";
-		for (int i = 0; i < frame.length; ++i)
-			result += frame[i] + " ";
-		result += "]";
-		return result;
 	}
 
 	private static void analyzeWaveform(AudioInputStream stream) {
